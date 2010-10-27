@@ -264,7 +264,6 @@
               var itm = items[i];
               var inv = parseInventory(itm.inventory);
               var data = schema.items[itm.defindex];
-            if(a == 0){ a=1; alert(dump(data)); }
               var att = itm.attributes ? itm.attributes.attribute : null;
               var cur = {
                 position: inv.position,
