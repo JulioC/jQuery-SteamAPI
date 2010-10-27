@@ -204,7 +204,7 @@
 		    value = particles[data.float_value];
 		  break;
 		  default:
-			value = "V:"+data.value+"F:"+data.format+"\n"+dump(data);
+			value = "V:"+data.value+"F:"+data.format;
 		}
 		
 	    ret = data.string.replace("%s1", value);
