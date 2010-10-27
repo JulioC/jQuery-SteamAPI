@@ -259,10 +259,12 @@
           loadSchema(function() {
             var ret = [];
             // Parse the item data, to be readable
+            var a = 0;
             for(var i in items) {
               var itm = items[i];
               var inv = parseInventory(itm.inventory);
               var data = schema.items[itm.defindex];
+            if(a == 0){ a=1; alert(dump(data)); }
               var att = itm.attributes ? itm.attributes.attribute : null;
               var cur = {
                 position: inv.position,
@@ -277,7 +279,8 @@
                 used_by: data.used_by_classes || classes,
                 // Check and negate if something block the item from be traded 
                 tradable: !(itm.flag_cannot_trade || (typeof data.tradable === 'undefined' ? false : !data.tradable)),
-                image: data.image_url,
+                // Hardcoded: get the name of the image
+                image: data.image_url.substr(46),
                 // Parse some usefull data from the attributes
                 color: itemPainted(itm),
                 gifted: itemGifted(itm),
