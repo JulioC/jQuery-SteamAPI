@@ -27,7 +27,7 @@
                      'Vivid Plasma', 'Sunbeams', 'Circling Peace Sign', 'Circling Heart'];
                      
     // Attributes that shouldn't be added to items
-    var attBlackList = [25, 37, 116, 142, 195, 196];
+    var attBlackList = [25, 37, 116, 142, 189, 195, 196];
     // Items that have limited uses number
     var limitedItems = [241, 280, 281, 282, 283, 284, 286, 287, 288, 289, 290, 291, 
                         5020, 5021, 5023, 5027, 5028, 5029, 5030, 5031, 5032, 5033,
@@ -226,7 +226,7 @@
             value = 'STEAM_0:'+(data.value%2)+':'+(data.value/2);
           break;
           case 'value_is_particle_index':
-            value = particles[data.float_value];
+            value = particles[(data.value || data.float_value)] + dump(data);
           break;
           default:
             value = "V:"+data.value+"F:"+data.format;
