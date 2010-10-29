@@ -16,7 +16,7 @@
  * Some stuff on this plugin are really ugly, I'll try to
  * update it ASAP. 
  */
-
+ 
 (function($){
   var tf2items = (function(){
     // Game defines
@@ -25,7 +25,19 @@
                      'Green Confetti',  'Purple Confetti', 'Haunted Ghosts', 'Green Energy', 'Purple Energy',
                      'Circling TF Logo', 'Massed Flies', 'Burning Flames', 'Scorching Flames', 'Searing Plasma',
                      'Vivid Plasma', 'Sunbeams', 'Circling Peace Sign', 'Circling Heart'];
-    
+                     
+    // Attributes that shouldn't be added to items
+    var attBlackList = [25, 37, 116, 142, 195, 196];
+    // Items that have limited uses number
+    var limitedItems = [241, 280, 281, 282, 283, 284, 286, 287, 288, 289, 290, 291, 
+                        5020, 5021, 5023, 5027, 5028, 5029, 5030, 5031, 5032, 5033,
+                        5034, 5035, 5036, 5037, 5038, 5039, 5040, 5042, 5043, 5044];
+    // Strings that come unstralated from the server
+    var unstraslated = {
+      TF_Wearable_Hat: 'Hat',
+      TF_LockedCrate: 'Crate'
+    };
+     
     var schema = null;
     var language = null;
     
@@ -127,7 +139,7 @@
           for(var a in attributes) {
             var att = attributes[a];
             var data = schema.attributes[att.name];
-            if((att.value || att.float_value) && data.defindex != 142 && data.defindex != 195) {
+            if(validAttribute(data.defindex, att)) {
               ret.push({
                 name: buildAttribute({
                   string: data.description_string || null,
@@ -145,9 +157,9 @@
           var n = 0;
           for(var e in extra) {
             var att = extra[e];
-            var data = searchAttribute(att.defindex);
-            // if we have a value and the attributes is not on the blacklist
-            if((att.value || att.float_value) && att.defindex != 142 && att.defindex != 195) {
+            // Bypass the crate series from the item
+            if(validAttribute(att.defindex, att) && att.defindex != 187) {
+              var data = searchAttribute(att.defindex);
               ret.push({
                 name: buildAttribute({
                   string: data.description_string || null,
@@ -163,6 +175,19 @@
       }
       return ret;
     };
+    
+    // Check if the attribute info matches with any bad one
+    var validAttribute = function(defindex, data) {
+      if(!(data.value || data.float_value)) {
+        return false;
+      }
+      for(var i in attBlackList) {
+        if(attBlackList[i] == defindex) {
+          return false;
+        }     
+      }
+      return true;
+    }
     
     // Get the attribute by its defindex
     var searchAttribute = function(defindex) {
@@ -185,7 +210,7 @@
             value = Math.round((data.value*100) - 100);
           break;
           case 'value_is_inverted_percentage':
-            value = Math.round((100 - (data.value*100)) * -1);
+            value = Math.round((100 - (data.value*100)));
           break;
           case 'value_is_additive':
             value = data.value;
@@ -250,6 +275,23 @@
       return false;
     };
     
+    var itemLimited = function(defindex) {
+      for(var i in limitedItems) {
+        if(limitedItems[i] == defindex) {
+          return true;
+        }
+      }
+      return false;
+    };
+    
+    var fixString = function(str) {
+      if(unstraslated[str]) {
+        return unstraslated[str];
+      }
+      
+      return str;
+    }
+    
     return {
       // Get and parse the items for a specific backpack
       getItems: function(id, callback) {
@@ -269,10 +311,10 @@
                 position: inv.position,
                 name: buildName(itm.defindex, itm.quality),
                 custom_name: itm.custom_name,
-                type: data.item_type_name,
+                type: fixString(data.item_type_name),
                 level: itm.level,
                 quality: schema.qualities[itm.quality].code,
-                quantity: itm.quantity,
+                quantity: itemLimited(itm.defindex) ? itm.quantity : null,
                 equipped: inv.equipped,
                 // Itens for all classes dont have 'used_by_classes', so use the classes array
                 used_by: data.used_by_classes || classes,
@@ -292,6 +334,35 @@
             callback(ret);
           });
         });  
+      },
+      getItemList: function(callback) {
+        // Get the schema
+        loadSchema(function() {
+          var items = schema.items;
+          var ret = [];
+          // Parse the item data, to be readable
+          var a = 0;
+          for(var i in items) {
+            var itm = items[i];
+            var att = itm.attributes;
+            var cur = {
+              name: buildName(itm.defindex),
+              type: fixString(itm.item_type_name),
+              // Itens for all classes dont have 'used_by_classes', so use the classes array
+              used_by: itm.used_by_classes || classes,
+              // Check and negate if something block the item from be traded 
+              tradable: !(itm.flag_cannot_trade),
+              // Hardcoded: get the name of the image
+              image: itm.image_url.substr(46),
+              // Parse some usefull data from the attributes
+              attributes: parseAttributes(itm.defindex)
+            };
+            
+            ret.push(cur);
+          }
+          
+          callback(ret);
+        });
       },
       // Allow us to use multiple languages
       setLanguage: function(_language){
