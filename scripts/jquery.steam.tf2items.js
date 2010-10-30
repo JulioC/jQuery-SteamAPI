@@ -226,7 +226,7 @@
             value = 'STEAM_0:'+(data.value%2)+':'+(data.value/2);
           break;
           case 'value_is_particle_index':
-            value = particles[(data.value || data.float_value)] + dump(data);
+            value = particles[(data.value || data.float_value)];
           break;
           default:
             value = "V:"+data.value+"F:"+data.format;
