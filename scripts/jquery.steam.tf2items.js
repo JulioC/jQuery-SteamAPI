@@ -299,7 +299,10 @@
           var items = data.result.items.item;
           // Ensure that our schema is loaded
           loadSchema(function() {
-            var ret = [];
+            var ret = {
+              items: [],
+              invalid: []
+            };
             // Parse the item data, to be readable
             var a = 0;
             for(var i in items) {
@@ -328,7 +331,13 @@
                 attributes: parseAttributes(itm.defindex, att)
               };
               
-              ret.push(cur);
+              // Add the item to the invalid array if it's overlaping other items
+              if(inv.position && typeof ret.items[inv.position] === 'undefined') {
+                ret.items[inv.position] = cur;
+              }
+              else {
+                ret.invalid.push(cur);
+              }
             }
             
             callback(ret);
