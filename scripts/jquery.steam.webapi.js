@@ -92,7 +92,7 @@
     })();
     
     // Make the request for the server
-    var request = function(interface, method, arguments, success, sync, cachable, sync) {
+    var request = function(interface, method, arguments, success, cachable) {
       var myurl = url.build({
           interface: interface,
           method: method,
@@ -103,42 +103,41 @@
           url: myurl,
           dataType: 'jsonp', 
           success: success,
-          cache: true,
-          async: !sync
+          cache: true
         });
     };
     
     return {
       // Execute a direct call. Used for unsupported interfaces/methods
-      raw: function(interface, method, arguments, success, sync) {
-        request(interface, method, arguments, success, sync);
+      raw: function(interface, method, arguments, success) {
+        request(interface, method, arguments, success);
       },
       
       // GetNewsForApp returns the latest of a game specified by its appID. 
       // http://developer.valvesoftware.com/wiki/Steam_Web_API#GetNewsForApp_.28v0001.29
-      appNews: function(appid, maxlength, count, success, sync) {
+      appNews: function(appid, maxlength, count, success) {
         var arguments = {
           appid: appid,
           maxlength: maxlength,
           count: count
         };
         
-        request('ISteamNews', 'GetNewsForApp', arguments, success, sync);
+        request('ISteamNews', 'GetNewsForApp', arguments, success);
       },  
       
       // Returns on global achievements overview of a specific game in percentages. 
       // http://developer.valvesoftware.com/wiki/Steam_Web_API#GetGlobalAchievementPercentagesForApp_.28v0001.29
-      appAchievments: function(gameid, success, sync) {
+      appAchievments: function(gameid, success) {
         var arguments = {
           gameid: gameid
         };
         
-        request('ISteamUserStats', 'GetGlobalAchievementPercentagesForApp', arguments, success, sync);
+        request('ISteamUserStats', 'GetGlobalAchievementPercentagesForApp', arguments, success);
       },  
       
       // Returns basic profile information for a list of 64-bit Steam IDs. 
       // http://developer.valvesoftware.com/wiki/Steam_Web_API#GetPlayerSummaries_.28v0001.29
-      playerSummaries: function(players, success, sync) {
+      playerSummaries: function(players, success) {
         var steamids;
         if(typeof players === 'string') {
           steamids = players;
@@ -156,35 +155,35 @@
           steamids: steamids
         };
           
-        request('ISteamUser', 'GetPlayerSummaries', arguments, success, sync);
+        request('ISteamUser', 'GetPlayerSummaries', arguments, success);
       }, 
       
       // Encapsulate the TF2 methods, so we dont have to worry about name conflits
       tf2: {
         // This method returns the item schema for the current build of Team Fortress 2.
         // http://wiki.teamfortress.com/wiki/WebAPI#GetSchema_.28v0001.29
-        schema: function(language, success, sync) {
+        schema: function(language, success) {
           var arguments = {
             language: language
           };
           
-          request('ITFItems_440', 'GetSchema', arguments, success, sync);
+          request('ITFItems_440', 'GetSchema', arguments, success);
         },  
         
         // This method returns the item schema for the current build of Team Fortress 2.
         // http://wiki.teamfortress.com/wiki/WebAPI#GetPlayerItems_.28v0001.29
-        playerItems: function(SteamID, success, sync) {
+        playerItems: function(SteamID, success) {
           var arguments = {
             SteamID: SteamID
           };
           
-          request('ITFItems_440', 'GetPlayerItems', arguments, success, sync);
+          request('ITFItems_440', 'GetPlayerItems', arguments, success);
         },  
         
         // This method returns the item schema for the current build of Team Fortress 2.
         // http://wiki.teamfortress.com/wiki/WebAPI#GetGoldenWrenches_.28v0001.29
         goldenWrenchs: function(success) {
-          request('ITFItems_440', 'GetGoldenWrenches', {}, success, sync);
+          request('ITFItems_440', 'GetGoldenWrenches', {}, success);
         }
       },
        
