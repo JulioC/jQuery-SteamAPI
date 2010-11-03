@@ -18,7 +18,7 @@
  */
  
 (function($){
-  var tf2items = (function(){
+  $.steam.tf2items = (function(){
     // Game defines
     var classes = ['scout', 'sniper', 'soldier', 'demoman', 'medic', 'heavy', 'pyro', 'spy', 'engineer'];
     var particles = ['particle0', 'particle1', 'particle2', 'particle3', 'particle4', 'particle5',
@@ -226,7 +226,7 @@
             value = 'STEAM_0:'+(data.value%2)+':'+(data.value/2);
           break;
           case 'value_is_particle_index':
-            value = particles[(data.value || data.float_value)];
+            value = particles[(data.float_value || data.value)];
           break;
           default:
             value = "V:"+data.value+"F:"+data.format;
@@ -240,6 +240,22 @@
             
       return ret;
     };
+    
+    var getUsedBy = function(data) {
+      // If no data, the item is used by all classes
+      if(!data.used_by_classes) {
+        return classes;
+      }
+       
+      var ret = [];
+      for(var c in data.used_by_classes['class']) {
+        if(data.used_by_classes['class'][c]) {
+          ret.push(data.used_by_classes['class'][c].toLowerCase());
+        }
+      }
+       
+      return ret;
+    }
     
     // Check and get the color of a painted item
     var itemPainted = function(itm) {
@@ -268,7 +284,9 @@
       for(var a in attributes) {
         var att = attributes[a];
         if(att.defindex == 186) {
-          return att.value + 76561197960265728;
+          // Avoid problems with the big number
+          // Original sum was value + 76561197960265728 
+          return '7656119' + (att.value + 7960265728);
         }
       }
       
@@ -314,20 +332,21 @@
                 position: inv.position,
                 name: buildName(itm.defindex, itm.quality),
                 custom_name: itm.custom_name,
+                custom_desc: itm.custom_desc,
                 type: fixString(data.item_type_name),
                 level: itm.level,
                 quality: schema.qualities[itm.quality].code,
                 quantity: itemLimited(itm.defindex) ? itm.quantity : null,
                 equipped: inv.equipped,
-                // Itens for all classes dont have 'used_by_classes', so use the classes array
-                used_by: data.used_by_classes || classes,
+                // Get the proper used_by_classes array
+                used_by: getUsedBy(data),
                 // Check and negate if something block the item from be traded 
                 tradable: !(itm.flag_cannot_trade || (typeof data.tradable === 'undefined' ? false : !data.tradable)),
                 // Hardcoded: get the name of the image
-                image: data.image_url.substr(46),
+                image: data.image_url,
                 // Parse some usefull data from the attributes
                 color: itemPainted(itm),
-                gifted: itemGifted(itm),
+                gift: itemGifted(itm),
                 attributes: parseAttributes(itm.defindex, att)
               };
               
@@ -358,12 +377,13 @@
               name: buildName(itm.defindex),
               type: fixString(itm.item_type_name),
               // Itens for all classes dont have 'used_by_classes', so use the classes array
-              used_by: itm.used_by_classes || classes,
+              used_by: getUsedBy(itm),
               // Check and negate if something block the item from be traded 
               tradable: !(itm.flag_cannot_trade),
               // Hardcoded: get the name of the image
-              image: itm.image_url.substr(46),
+              image: itm.image_url,
               // Parse some usefull data from the attributes
+              color: itemPainted(itm),
               attributes: parseAttributes(itm.defindex)
             };
             
@@ -384,11 +404,5 @@
         }
       }
     }
-  })();  
-  
-  // Create the steam object on jQuery and expose the tf2items
-  if(!$.steam || typeof $.steam !== 'object') {
-    $.steam = {};
-  }  
-  $.steam.tf2items = tf2items;
+  })();
 })(jQuery);
